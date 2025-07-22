@@ -105,6 +105,8 @@ func (s ByPri) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
+// Less reports whether the element with
+// index i should sort before the element with index j.
 func (s ByPri) Less(i, j int) bool {
 
 	if s[i].Done != s[j].Done {

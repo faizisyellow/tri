@@ -72,11 +72,9 @@ func ListRun(cmd *cobra.Command, args []string) {
 
 	for _, v := range bufItems {
 
-		if searchOpt != "" {
-			if strings.Contains(v.Text, searchOpt) {
-				fmt.Fprintln(w, v.Label(), "\t"+v.PrettyDone(), "\t", v.PrettyP()+"\t"+v.Text+"\t")
-				found = +1
-			}
+		if searchOpt != "" && strings.Contains(v.Text, searchOpt) {
+			fmt.Fprintln(w, v.Label(), "\t"+v.PrettyDone(), "\t", v.PrettyP()+"\t"+v.Text+"\t")
+			found = +1
 		} else {
 			fmt.Fprintln(w, v.Label(), "\t"+v.PrettyDone(), "\t", v.PrettyP()+"\t"+v.Text+"\t")
 		}
