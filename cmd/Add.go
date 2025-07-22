@@ -1,6 +1,3 @@
-/*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -8,6 +5,7 @@ import (
 
 	"faizisyellow.com/tri/todo"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var priority int
@@ -36,11 +34,12 @@ func init() {
 
 func AddRun(cmd *cobra.Command, args []string) {
 
-	items, err := todo.ReadItems(dataFile)
-	if err != nil {
-		fmt.Println("error reading todo: ", err)
-		return
+	data := dataFile
+	if viper.GetString("datafile") != "" {
+		data = viper.GetString("datafile")
 	}
+
+	items, _ := todo.ReadItems(data)
 
 	for _, v := range args {
 		item := todo.Item{Text: v}
@@ -49,7 +48,7 @@ func AddRun(cmd *cobra.Command, args []string) {
 		items = append(items, item)
 	}
 
-	err = todo.SaveItems(dataFile, items)
+	err := todo.SaveItems(data, items)
 	if err != nil {
 		fmt.Println("error save todo: ", err)
 	}

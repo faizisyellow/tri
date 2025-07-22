@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"text/tabwriter"
 
 	"faizisyellow.com/tri/todo"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // listCmd represents the list command
@@ -17,6 +19,12 @@ var listCmd = &cobra.Command{
 	Long:  `Listing the todos`,
 	Run:   ListRun,
 }
+
+var (
+	doneOpt   bool
+	allOpt    bool
+	searchOpt string
+)
 
 func init() {
 	rootCmd.AddCommand(listCmd)
@@ -29,12 +37,19 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	listCmd.Flags().BoolVar(&doneOpt, "done", false, "Show 'Done' Todos ")
+	listCmd.Flags().BoolVar(&allOpt, "all", false, "Show all Todos ")
+	listCmd.Flags().StringVarP(&searchOpt, "search", "s", "", "Search Text items")
 }
 
 func ListRun(cmd *cobra.Command, args []string) {
 
-	items, err := todo.ReadItems(dataFile)
+	data := dataFile
+	if viper.GetString("datafile") != "" {
+		data = viper.GetString("datafile")
+	}
+
+	items, err := todo.ReadItems(data)
 	if err != nil {
 		fmt.Println("error reading items: ", err)
 		return
@@ -44,9 +59,33 @@ func ListRun(cmd *cobra.Command, args []string) {
 
 	w := tabwriter.NewWriter(os.Stdout, 3, 0, 1, ' ', 0)
 
+	var bufItems []*todo.Item
+
 	for _, i := range items {
-		fmt.Fprintln(w, i.Label(), i.PrettyP()+"\t"+i.Text+"\t")
+
+		if allOpt || i.Done == doneOpt {
+			bufItems = append(bufItems, &i)
+		}
+	}
+
+	var found int
+
+	for _, v := range bufItems {
+
+		if searchOpt != "" {
+			if strings.Contains(v.Text, searchOpt) {
+				fmt.Fprintln(w, v.Label(), "\t"+v.PrettyDone(), "\t", v.PrettyP()+"\t"+v.Text+"\t")
+				found = +1
+			}
+		} else {
+			fmt.Fprintln(w, v.Label(), "\t"+v.PrettyDone(), "\t", v.PrettyP()+"\t"+v.Text+"\t")
+		}
+	}
+
+	if found == 0 && searchOpt != "" {
+		fmt.Fprint(w, "no matching any items\n")
 	}
 
 	w.Flush()
+
 }

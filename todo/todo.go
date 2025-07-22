@@ -2,6 +2,7 @@ package todo
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -10,6 +11,7 @@ type Item struct {
 	Text     string
 	Priority int
 	Position int
+	Done     bool
 }
 
 // ByPri implements sort.Interface For []Item based on
@@ -35,7 +37,7 @@ func ReadItems(filename string) ([]Item, error) {
 
 	b, err := os.ReadFile(filename)
 	if err != nil {
-		return []Item{}, err
+		return []Item{}, fmt.Errorf("error when reading file: %v", err)
 	}
 
 	var items []Item
@@ -79,6 +81,15 @@ func (i *Item) PrettyP() string {
 	return " "
 }
 
+func (i *Item) PrettyDone() string {
+
+	if i.Done {
+		return "X"
+	}
+
+	return ""
+}
+
 func (i *Item) Label() string {
 
 	return strconv.Itoa(i.Position) + "."
@@ -95,6 +106,11 @@ func (s ByPri) Swap(i, j int) {
 }
 
 func (s ByPri) Less(i, j int) bool {
+
+	if s[i].Done != s[j].Done {
+
+		return s[i].Done
+	}
 
 	if s[i].Priority == s[j].Priority {
 		return s[i].Position < s[j].Position
